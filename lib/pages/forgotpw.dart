@@ -10,7 +10,7 @@ class ForgotPassword extends StatefulWidget {
 class _ForgotPassword extends State<ForgotPassword> {
   final maintxt = const TextStyle(
     fontWeight: FontWeight.bold,
-    fontSize: 30,
+    fontSize: 15,
     color: Colors.black,
   );
   final _formfield = GlobalKey<FormState>();
@@ -29,7 +29,7 @@ class _ForgotPassword extends State<ForgotPassword> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 60),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           child: Form(
               key: _formfield,
               child: Column(
@@ -39,17 +39,19 @@ class _ForgotPassword extends State<ForgotPassword> {
                   const Icon(
                     Icons.email_outlined,
                     size: 200,
-                    color: Colors.grey,
+                    color: Colors.black,
                   ),
                   const SizedBox(
-                    height: 25,
+                    height: 5,
                   ),
                   Text(
                     'We will send you an email with instructions. Please enter your email.',
                     style: maintxt,
                     textAlign: TextAlign.center,
                   ),
-                const SizedBox(height: 20,),
+                  const SizedBox(
+                    height: 20,
+                  ),
                   TextFormField(
                     keyboardType: TextInputType.emailAddress,
                     controller: emailController,
@@ -87,8 +89,9 @@ class _ForgotPassword extends State<ForgotPassword> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: const [
                                       Text(
-                                          'We have sent an Email with instructions,'),
-                                      Text('Please Check your Inbox'),
+                                        'We have sent an Email with instructions,Please Check your Inbox',
+                                        textAlign: TextAlign.center,
+                                      ),
                                     ],
                                   ),
                                   actions: [

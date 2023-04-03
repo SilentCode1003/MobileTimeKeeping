@@ -201,7 +201,7 @@ class _PayslipState extends State<Payslip> {
                       );
                     });
               },
-              leading: const Icon(Icons.person),
+              leading: const Icon(Icons.receipt),
               trailing: const Icon(Icons.menu),
             ),
           );
