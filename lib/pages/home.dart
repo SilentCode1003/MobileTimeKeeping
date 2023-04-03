@@ -17,28 +17,30 @@ class _HomePageState extends State<HomePage> {
     'images/hero3.jpg',
     'images/hero4.jpg',
   ];
-  String buttonText = " Login";
-  void _handleLogin() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Success!'),
-          actions: [
-            ElevatedButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                setState(() {
-                  buttonText = 'Log Out';
-                });
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+  String buttonText = "Login";
+ void _handleLogin() {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Success!'),
+        content: Text('You are now logged ${buttonText == 'Log In' ? 'in' : 'out'}.'),
+        actions: [
+          ElevatedButton(
+            child: const Text('OK'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              setState(() {
+                buttonText = buttonText == 'Log In' ? 'Log Out' : 'Log In';
+              });
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +85,9 @@ class _HomePageState extends State<HomePage> {
                               const SizedBox(height: 10),
                               ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.green,
+                                  backgroundColor: buttonText == 'Log In'
+                                      ? Colors.green
+                                      : const Color.fromARGB(255, 249, 19, 3),
                                   shape: const CircleBorder(),
                                   padding: const EdgeInsets.all(60),
                                   elevation: 10,
