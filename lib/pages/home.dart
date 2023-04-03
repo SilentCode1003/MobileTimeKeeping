@@ -17,6 +17,28 @@ class _HomePageState extends State<HomePage> {
     'images/hero3.jpg',
     'images/hero4.jpg',
   ];
+  String buttonText = " Login";
+  void _handleLogin() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Success!'),
+          actions: [
+            ElevatedButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  buttonText = 'Log Out';
+                });
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,62 +82,20 @@ class _HomePageState extends State<HomePage> {
                               ),
                               const SizedBox(height: 10),
                               ElevatedButton(
-                                onPressed: () {
-                                  showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return AlertDialog(
-                                          title: const Text(
-                                            'Successful',
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                                color: Colors.green,
-                                                fontWeight: FontWeight.w700),
-                                          ),
-                                          content: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: const [
-                                              Text(
-                                                'Dont forget to Log Out Later!',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                              ),
-                                              Text('Thank you <3'),
-                                            ],
-                                          ),
-                                          actions: [
-                                            Container(
-                                              alignment: Alignment.center,
-                                              color: Colors.green[400],
-                                              padding: const EdgeInsets.all(14),
-                                              child: TextButton(
-                                                onPressed: () {
-                                                  Navigator.of(context).pop();
-                                                },
-                                                child: const Text(
-                                                  'Done',
-                                                  style: TextStyle(
-                                                      color: Colors.black),
-                                                ),
-                                              ),
-                                            )
-                                          ],
-                                        );
-                                      });
-                                },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.green,
                                   shape: const CircleBorder(),
                                   padding: const EdgeInsets.all(60),
                                   elevation: 10,
                                 ),
-                                child: const Text(
-                                  'Time In \n/ Out',
+                                onPressed: _handleLogin,
+                                child: Text(
+                                  buttonText,
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 30),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 30,
+                                  ),
                                 ),
                               ),
                               const Divider(height: 50),

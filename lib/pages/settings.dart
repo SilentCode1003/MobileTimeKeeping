@@ -33,7 +33,7 @@ class _SettingsState extends State<Settings> {
               children: [
                 const Icon(
                   Icons.person,
-                  color: Colors.red,
+                  color: Colors.blue,
                 ),
                 const SizedBox(
                   width: 10,
@@ -50,8 +50,6 @@ class _SettingsState extends State<Settings> {
             // ),
 
             buildAccountOption(context, 'Change Password'),
-            const Divider(height: 0, thickness: 1),
-            buildAccountOption(context, 'Languages'),
             const Divider(height: 0, thickness: 1),
             buildAccountOption(context, 'Privacy'),
             const Divider(height: 0, thickness: 1),
@@ -114,7 +112,8 @@ class _SettingsState extends State<Settings> {
             context: context,
             builder: (ctx) => AlertDialog(
               title: const Text("Thank you", textAlign: TextAlign.center),
-              content: const Text("Please Come back again!", textAlign: TextAlign.center),
+              content: const Text("Please Come back again!",
+                  textAlign: TextAlign.center),
               actions: <Widget>[
                 TextButton(
                   onPressed: () {
