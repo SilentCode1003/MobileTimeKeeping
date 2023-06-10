@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:hidden_drawer_menu/hidden_drawer_menu.dart';
-import 'package:scratch/pages/home.dart';
+import 'package:scratch/pages/dashboard.dart';
 import 'package:scratch/pages/payslip.dart';
 import 'pages/settings.dart';
 import 'pages/logs.dart';
 
-class HiddeDrawer extends StatefulWidget {
-  const HiddeDrawer({super.key});
+class HiddenDrawer extends StatefulWidget {
+  const HiddenDrawer({Key? key}) : super(key: key);
 
   @override
-  State<HiddeDrawer> createState() => _HiddeDrawerState();
+  State<HiddenDrawer> createState() => _HiddeDrawerState();
 }
 
-class _HiddeDrawerState extends State<HiddeDrawer> {
+class _HiddeDrawerState extends State<HiddenDrawer> {
   List<ScreenHiddenDrawer> _pages = [];
 
   final menutextstyle = const TextStyle(
     fontWeight: FontWeight.normal,
-    fontSize: 15,
+    fontSize: 17,
     color: Colors.white,
   );
 
@@ -27,38 +27,54 @@ class _HiddeDrawerState extends State<HiddeDrawer> {
     _pages = [
       ScreenHiddenDrawer(
         ItemHiddenMenu(
-            name: 'Dashboard',
-            baseStyle:
-                const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-            selectedStyle: menutextstyle,
-            colorLineSelected: Colors.green),
+          name: 'Dashboard',
+          baseStyle: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
+          ),
+          selectedStyle: menutextstyle,
+          colorLineSelected: Colors.blue,
+        ),
         const HomePage(),
       ),
       ScreenHiddenDrawer(
         ItemHiddenMenu(
-            name: 'Logs',
-            baseStyle:
-                const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-            selectedStyle: menutextstyle,
-            colorLineSelected: Colors.green),
+          name: 'Logs',
+          baseStyle: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
+          ),
+          selectedStyle: menutextstyle,
+          colorLineSelected: Colors.blue,
+        ),
         const Logs(),
       ),
       ScreenHiddenDrawer(
         ItemHiddenMenu(
-            name: 'Payslip',
-            baseStyle:
-                const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-            selectedStyle: menutextstyle,
-            colorLineSelected: Colors.green),
+          name: 'Payslip',
+          baseStyle: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
+          ),
+          selectedStyle: menutextstyle,
+          colorLineSelected: Colors.blue,
+        ),
         const Payslip(),
       ),
       ScreenHiddenDrawer(
         ItemHiddenMenu(
-            name: 'Settings',
-            baseStyle:
-                const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-            selectedStyle: menutextstyle,
-            colorLineSelected: Colors.green),
+          name: 'Settings',
+          baseStyle: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
+          ),
+          selectedStyle: menutextstyle,
+          colorLineSelected: Colors.blue,
+        ),
         const Settings(),
       ),
     ];
@@ -67,10 +83,10 @@ class _HiddeDrawerState extends State<HiddeDrawer> {
   @override
   Widget build(BuildContext context) {
     return HiddenDrawerMenu(
-      backgroundColorMenu: Colors.teal.shade900,
+      backgroundColorMenu: const Color.fromARGB(255, 36, 48, 114),
       screens: _pages,
       isTitleCentered: true,
-      slidePercent: 40,
+      slidePercent: 35,
     );
   }
 }

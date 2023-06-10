@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:scratch/Repository/customhelper.dart';
 
 class Item {
-  Item(
-      {required this.headerText,
-      required this.sss,
-      required this.pagibig,
-      required this.philhealth,
-      required this.deduction,
-      required this.index,
-      this.isExpanded = false});
+  Item({
+    required this.headerText,
+    required this.sss,
+    required this.pagibig,
+    required this.philhealth,
+    required this.deduction,
+    required this.index,
+    this.isExpanded = false,
+  });
+
   List<String> headerText;
   String sss;
   String pagibig;
@@ -20,195 +21,217 @@ class Item {
 }
 
 class Payslip extends StatefulWidget {
-  const Payslip({super.key});
+  const Payslip({Key? key}) : super(key: key);
 
   @override
   State<Payslip> createState() => _PayslipState();
 }
 
 class _PayslipState extends State<Payslip> {
-  final List<Item> _data = List<Item>.generate(2, (int index) {
-    return Item(
-        headerText: getMonths(),
-        sss: '100',
-        pagibig: '100',
-        philhealth: '100',
-        deduction: '100',
-        index: index);
-  });
+  final itmborder = const Border(
+    bottom: BorderSide(color: Colors.black, width: 0.5),
+    top: BorderSide(color: Colors.black, width: 0.5),
+  );
+
+  final List<String> _items = ['Item 1', 'Item 2', 'Item 3'];
+  late DateTime _fromDate;
+  late DateTime _toDate;
+
+  Future<void> _selectFromDate(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (pickedDate != null && pickedDate != _fromDate) {
+      setState(() {
+        _fromDate = pickedDate;
+      });
+    }
+  }
+
+  Future<void> _selectToDate(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (pickedDate != null && pickedDate != _toDate) {
+      setState(() {
+        _toDate = pickedDate;
+      });
+    }
+  }
+
+  void _showModalSheet(BuildContext context, String item) {
+    showModalBottomSheet(
+      shape: itmborder,
+      backgroundColor: Colors.grey[100],
+      context: context,
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: SingleChildScrollView(
+            child: Column(
+              children: <Widget>[
+                const Padding(
+                  padding: EdgeInsets.all(10),
+                  child: Text(
+                    'Date',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                  ),
+                ),
+                DataTable(
+                  columns: const [
+                    DataColumn(label: Text('Column1')),
+                    DataColumn(label: Text('Column2')),
+                  ],
+                  rows: const [
+                    DataRow(cells: [
+                      DataCell(Text('Basic')),
+                      DataCell(Text('1,000')),
+                    ]),
+                    DataRow(cells: [
+                      DataCell(Text('benefits')),
+                      DataCell(Text('1,000')),
+                    ]),
+                    DataRow(cells: [
+                      DataCell(Text('Holiday')),
+                      DataCell(Text('1,000')),
+                    ]),
+                  ],
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  bool _sortAscending = true;
+  void _sortLogs() {
+    setState(() {
+      _sortAscending = !_sortAscending;
+      _items.sort((a, b) {
+        if (_sortAscending) {
+          return a.compareTo(b);
+        } else {
+          return b.compareTo(a);
+        }
+      });
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fromDate = DateTime.now();
+    _toDate = DateTime.now();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 20.0),
-      child: ListView.separated(
-        itemCount: 4,
-        itemBuilder: (BuildContext context, int index) {
-          return Padding(
-            padding: const EdgeInsets.only(top: 5.0, left: 5.0, right: 5.0),
-            child: ListTile(
-              dense: true,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: -10.0),
-              visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
-              title: const Text('Jan 26 - Feb 10'),
-              tileColor: const Color.fromARGB(255, 239, 235, 235),
-              shape: const Border(
-                bottom: BorderSide(color: Colors.black, width: 0.5),
-                top: BorderSide(color: Colors.black, width: 0.5),
-                left: BorderSide(color: Colors.black, width: 0.5),
-                right: BorderSide(color: Colors.black, width: 0.5),
-              ),
-              onTap: () {
-                showModalBottomSheet(
-                    shape: const Border(
-                      bottom: BorderSide(color: Colors.black, width: 0.5),
-                      top: BorderSide(color: Colors.black, width: 0.5),
-                      left: BorderSide(color: Colors.black, width: 0.5),
-                      right: BorderSide(color: Colors.black, width: 0.5),
+    return Scaffold(
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 2),
+                    child: Text(
+                      'Payslip',
+                      textAlign: TextAlign.left,
                     ),
-                    backgroundColor: Colors.grey[100],
-                    context: context,
-                    builder: (BuildContext context) {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: SingleChildScrollView(
-                          child: Column(
-                            children: <Widget>[
-                              const Padding(
-                                // padding: EdgeInsets.only(top: 20.0, bottom: 15.0),
-                                padding: EdgeInsets.all(10.0),
-                                child: Text(
-                                  'Jan 26 - Feb 10',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 20),
-                                ),
-                              ),
-                              const Divider(
-                                  height: 5, thickness: 1, color: Colors.black),
-                              Center(
-                                child: ExpansionTile(
-                                  title: const Text('Compensation'),
-                                  trailing: const Text('2,000'),
-                                  children: [
-                                    DataTable(
-                                      columns: const [
-                                        DataColumn(label: Text('Column1')),
-                                        DataColumn(label: Text('Column2')),
-                                      ],
-                                      rows: const [
-                                        DataRow(cells: [
-                                          DataCell(Text('Basic')),
-                                          DataCell(Text('1,000')),
-                                        ]),
-                                        DataRow(cells: [
-                                          DataCell(Text('benefits')),
-                                          DataCell(Text('1,000')),
-                                        ]),
-                                        DataRow(cells: [
-                                          DataCell(Text('Holiday')),
-                                          DataCell(Text('1,000')),
-                                        ]),
-                                      ],
-                                    )
-                                  ],
-                                ),
-                              ),
-                              const Divider(
-                                  height: 1,
-                                  thickness: 0.5,
-                                  color: Colors.grey),
-                              ExpansionTile(
-                                title: const Text('Deductions'),
-                                trailing: const Text('2,000'),
-                                children: [
-                                  DataTable(
-                                    columns: const [
-                                      DataColumn(label: Text('Column1')),
-                                      DataColumn(label: Text('Column2')),
-                                    ],
-                                    rows: const [
-                                      DataRow(cells: [
-                                        DataCell(Text('Late / Undertime')),
-                                        DataCell(Text('1,000')),
-                                      ]),
-                                      DataRow(cells: [
-                                        DataCell(Text('Absences')),
-                                        DataCell(Text('1,000')),
-                                      ]),
-                                      DataRow(cells: [
-                                        DataCell(Text('Allowance')),
-                                        DataCell(Text('1,000')),
-                                      ]),
-                                      DataRow(cells: [
-                                        DataCell(Text('SSS')),
-                                        DataCell(Text('1,000')),
-                                      ]),
-                                      DataRow(cells: [
-                                        DataCell(Text('PhilHealth')),
-                                        DataCell(Text('1,000')),
-                                      ]),
-                                      DataRow(cells: [
-                                        DataCell(Text('Phil Health')),
-                                        DataCell(Text('1,000')),
-                                      ]),
-                                      DataRow(cells: [
-                                        DataCell(Text('HDMF')),
-                                        DataCell(Text('1,000')),
-                                      ]),
-                                      DataRow(cells: [
-                                        DataCell(Text('Tax')),
-                                        DataCell(Text('1,000')),
-                                      ]),
-                                    ],
-                                  )
-                                ],
-                              ),
-                              const Divider(
-                                  height: 1,
-                                  thickness: 0.5,
-                                  color: Colors.grey),
-                              ExpansionTile(
-                                title: const Text('Net Pay'),
-                                trailing: const Text('2,000'),
-                                children: [
-                                  DataTable(
-                                    columns: const [
-                                      DataColumn(label: Text('Column1')),
-                                      DataColumn(label: Text('Column2')),
-                                    ],
-                                    rows: const [
-                                      DataRow(cells: [
-                                        DataCell(Text('Total Compensation')),
-                                        DataCell(Text('1,000')),
-                                      ]),
-                                      DataRow(cells: [
-                                        DataCell(Text('Total Deduction')),
-                                        DataCell(Text('1,000')),
-                                      ]),
-                                      DataRow(cells: [
-                                        DataCell(Text('Netpay')),
-                                        DataCell(Text('1,000')),
-                                      ]),
-                                    ],
-                                  )
-                                ],
-                              ),
-                            ],
-                          ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      children: [
+                        const Text(
+                          'From: ',
+                          style: TextStyle(fontSize: 12),
                         ),
-                      );
-                    });
-              },
-              leading: const Icon(Icons.receipt),
-              trailing: const Icon(Icons.menu),
+                        Text(
+                          _fromDate.toString().substring(0, 10),
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      children: [
+                        const Text(
+                          'To: ',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                        Text(
+                          _toDate.toString().substring(0, 10),
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          );
-        },
-        separatorBuilder: (BuildContext context, int index) => const Divider(
-          color: Color.fromARGB(255, 215, 213, 213),
-          thickness: 1,
+
+            // Sorting
+            IconButton(
+              icon: Icon(_sortAscending
+                  ? Icons.filter_alt
+                  : Icons.filter_alt_outlined),
+              onPressed: _sortLogs,
+            ),
+            // Date range selectors
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.calendar_today),
+                  onPressed: () {
+                    _selectFromDate(context);
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.calendar_today),
+                  onPressed: () {
+                    _selectToDate(context);
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+        automaticallyImplyLeading: false,
+        toolbarHeight: 75,
+        backgroundColor: const Color.fromARGB(255, 150, 166, 255),
+      ),
+      body: Container(
+        padding: const EdgeInsets.only(top: 20.0),
+        child: ListView.builder(
+          itemCount: _items.length,
+          itemBuilder: (BuildContext context, int index) {
+            final String item = _items[index];
+
+            return Card(
+              child: InkWell(
+                onTap: () => _showModalSheet(context, item),
+                child: ListTile(
+                  leading: const Icon(Icons.article_outlined),
+                  title: Text(item),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
