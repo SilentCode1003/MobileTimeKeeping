@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class ForgotPassword extends StatefulWidget {
-  const ForgotPassword({super.key});
+class Changepassword extends StatefulWidget {
+  const Changepassword({super.key});
 
   @override
-  State<ForgotPassword> createState() => _ForgotPassword();
+  State<Changepassword> createState() => _Changepassword();
 }
 
-class _ForgotPassword extends State<ForgotPassword> {
+class _Changepassword extends State<Changepassword> {
   final maintxt = const TextStyle(
     fontWeight: FontWeight.bold,
     fontSize: 15,
@@ -23,7 +23,7 @@ class _ForgotPassword extends State<ForgotPassword> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Forgot Password',
+          'Change Password',
           textAlign: TextAlign.center,
         ),
       ),
@@ -37,7 +37,7 @@ class _ForgotPassword extends State<ForgotPassword> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Icon(
-                    Icons.email_outlined,
+                    Icons.email,
                     size: 200,
                     color: Colors.black,
                   ),
