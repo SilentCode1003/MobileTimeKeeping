@@ -34,10 +34,10 @@ class _LogsState extends State<Logs> {
       backgroundColor: Colors.grey[100],
       context: context,
       builder: (BuildContext context) {
-        return const Padding(
+        return Padding(
           padding:  EdgeInsets.all(8.0),
           child: Column(
-            children: <Widget>[
+            children: const <Widget>[
               Padding(
                 padding:  EdgeInsets.all(10.0),
                 child: Text(

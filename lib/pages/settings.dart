@@ -172,9 +172,9 @@ class _SettingsState extends State<Settings> {
             builder: (BuildContext context) {
               return AlertDialog(
                 title: Text(title),
-                content: const Column(
+                content: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
+                  children: const [
                     Text('option 1'),
                     Text('option 2'),
                   ],

@@ -85,9 +85,9 @@ class _Changepassword extends State<Changepassword> {
                                     'Alert',
                                     textAlign: TextAlign.center,
                                   ),
-                                  content: const Column(
+                                  content:  Column(
                                     mainAxisSize: MainAxisSize.min,
-                                    children: [
+                                    children: const [
                                       Text(
                                         'We have sent an Email with instructions,Please Check your Inbox',
                                         textAlign: TextAlign.center,
