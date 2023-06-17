@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
-void main() {
-  runApp(const HomePage());
-}
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -115,7 +112,7 @@ class _HomePageState extends State<HomePage> {
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Your App Title',style: TextStyle(color: Colors.black),),
+          title: const Text('Mobile Time Keeping',style: TextStyle(color: Colors.black),),
           
           actions: [
             IconButton(
@@ -345,7 +342,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  
 }
 
 enum NotificationType { success, info }

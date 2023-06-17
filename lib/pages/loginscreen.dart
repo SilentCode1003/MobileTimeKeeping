@@ -1,7 +1,17 @@
+// ignore_for_file: use_build_context_synchronously
+
+import 'dart:convert';
+import 'dart:ffi';
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:scratch/pages/homepage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:scratch/hidden_drawer.dart';
 import 'package:scratch/pages/forgotpw.dart';
+import 'package:http/http.dart' as http;
+import '../config.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -52,6 +62,102 @@ class _LoginScreenState extends State<LoginScreen> {
     prefs.setString('password', password);
   }
 
+  Future<void> login(BuildContext context) async {
+    final username = emailController.text;
+    final password = passController.text;
+
+    final url = Uri.parse(Config.apiUrl + Config.employeeLoginAPI);
+    final response =
+        await http.post(url, body: {'username': username, 'password': password});
+
+    if (kDebugMode) {
+      print(response.statusCode);
+    }
+
+    if (response.statusCode == 200) {
+      final responseData = json.decode(response.body);
+
+      if (kDebugMode) {
+        print(responseData['msg']);
+      }
+
+      if (responseData['msg'] != 'success') {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Incorrect'),
+            content: const Text('Incorrect username and password'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      } else {
+        final List<dynamic> objects = responseData['data'];
+        final Map<String, dynamic> data = {
+          "employeeid": objects[0]['employeeid'],
+          "firstname": objects[0]['firstname'],
+          "middlename": objects[0]['middlename'],
+          "lastname": objects[0]['lastname'],
+          "username": objects[0]['username'],
+          "password": objects[0]['password'],
+          "position": objects[0]['position'],
+          "department": objects[0]['department'],
+          "contactnumber": objects[0]['contactnumber'],
+          "email": objects[0]['email'],
+          "status": objects[0]['status'],
+        };
+
+        if (kDebugMode) {
+          print(data);
+        }
+
+        final jsonString = json.encode(data);
+        final file = File('data/user.json');
+        file.writeAsString(jsonString);
+        // ignore: use_build_context_synchronously
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Login'),
+            content: const Text('Success'),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomePage()),
+                  );
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } else {
+      // Failed login
+      const errorMessage = 'Login failed. Please try again.';
+      // ignore: use_build_context_synchronously
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Login Error'),
+          content: const Text(errorMessage),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,16 +198,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.email),
                   ),
-                  validator: (value) {
-                    bool emailValid = RegExp(
-                      r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
-                    ).hasMatch(value!);
-                    if (value.isEmpty) {
-                      return 'Enter Email';
-                    } else if (!emailValid) {
-                      return 'Enter Valid Email';
-                    }
-                  },
+                  // validator: (value) {
+                  //   bool emailValid = RegExp(
+                  //     r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
+                  //   ).hasMatch(value!);
+                  //   if (value.isEmpty) {
+                  //     return 'Enter Email';
+                  //   } else if (!emailValid) {
+                  //     return 'Enter Valid Email';
+                  //   }
+                  // },
                 ),
                 const SizedBox(
                   height: 10,
@@ -154,45 +260,47 @@ class _LoginScreenState extends State<LoginScreen> {
                 InkWell(
                   onTap: () {
                     if (_formField.currentState!.validate()) {
-                      showDialog(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: const Text(
-                            'Welcome',
-                            textAlign: TextAlign.center,
-                          ),
-                          content: const Text(
-                            'Welcome Back!',
-                            textAlign: TextAlign.center,
-                          ),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(ctx).pop();
-                                Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (BuildContext context) =>
-                                      const HiddenDrawer(),
-                                ));
-                              },
-                              child: Container(
-                                alignment: Alignment.center,
-                                color: Colors.grey[400],
-                                padding: const EdgeInsets.all(14),
-                                child: const Text(
-                                  'Okay',
-                                  style: TextStyle(color: Colors.black),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
+                      // showDialog(
+                      //   context: context,
+                      //   builder: (ctx) => AlertDialog(
+                      //     title: const Text(
+                      //       'Welcome',
+                      //       textAlign: TextAlign.center,
+                      //     ),
+                      //     content: const Text(
+                      //       'Welcome Back!',
+                      //       textAlign: TextAlign.center,
+                      //     ),
+                      //     actions: <Widget>[
+                      //       TextButton(
+                      //         onPressed: () {
+                      //           Navigator.of(ctx).pop();
+                      //           Navigator.of(context).push(MaterialPageRoute(
+                      //             builder: (BuildContext context) =>
+                      //                 const HiddenDrawer(),
+                      //           ));
+                      //         },
+                      //         child: Container(
+                      //           alignment: Alignment.center,
+                      //           color: Colors.grey[400],
+                      //           padding: const EdgeInsets.all(14),
+                      //           child: const Text(
+                      //             'Okay',
+                      //             style: TextStyle(color: Colors.black),
+                      //           ),
+                      //         ),
+                      //       ),
+                      //     ],
+                      //   ),
+                      // );
+
+                      login(context);
                       if (rememberMe) {
                         saveLoginCredentials(
                             emailController.text, passController.text);
                       }
-                      emailController.clear();
-                      passController.clear();
+                      // emailController.clear();
+                      // passController.clear();
                     }
                   },
                   child: Container(
