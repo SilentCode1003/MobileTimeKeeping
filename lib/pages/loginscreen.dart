@@ -1,17 +1,20 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:convert';
-import 'dart:ffi';
 import 'dart:io';
 
+import 'package:connectivity/connectivity.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:scratch/pages/homepage.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:scratch/hidden_drawer.dart';
-import 'package:scratch/pages/forgotpw.dart';
 import 'package:http/http.dart' as http;
 import '../config.dart';
+import '../hidden_drawer.dart';
+import '../repository/customhelper.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+import 'forgotpw.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -30,7 +33,50 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
+    enablePermissions();
     loadRememberMeStatus();
+    checkConnectivity().then((isConnected) {
+      if (isConnected) {
+        // Device is connected to the network
+        // Perform actions or show UI accordingly
+        // requestWritePermission();
+        // _loadUserDetails();
+      } else {
+        // Device is not connected to the network
+        // Perform actions or show UI accordingly
+
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('No Connection'),
+            content: const Text(
+                'Please check your connectivity; after you click "OK," the page will close.'),
+            actions: [
+              TextButton(
+                onPressed: closeApp,
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    });
+  }
+
+  Future<void> enablePermissions() async {
+    // You can request multiple permissions at once.
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.location,
+      Permission.storage,
+    ].request();
+
+    if (kDebugMode) {
+      print(statuses[Permission.location]);
+    }
+  }
+
+  void closeApp() {
+    SystemNavigator.pop();
   }
 
   void loadRememberMeStatus() async {
@@ -62,13 +108,18 @@ class _LoginScreenState extends State<LoginScreen> {
     prefs.setString('password', password);
   }
 
+  Future<bool> checkConnectivity() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    return connectivityResult != ConnectivityResult.none;
+  }
+
   Future<void> login(BuildContext context) async {
     final username = emailController.text;
     final password = passController.text;
 
     final url = Uri.parse(Config.apiUrl + Config.employeeLoginAPI);
-    final response =
-        await http.post(url, body: {'username': username, 'password': password});
+    final response = await http
+        .post(url, body: {'username': username, 'password': password});
 
     if (kDebugMode) {
       print(response.statusCode);
@@ -115,28 +166,78 @@ class _LoginScreenState extends State<LoginScreen> {
           print(data);
         }
 
-        final jsonString = json.encode(data);
         final file = File('data/user.json');
-        file.writeAsString(jsonString);
-        // ignore: use_build_context_synchronously
-        showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Login'),
-            content: const Text('Success'),
-            actions: [
-              TextButton(
-                onPressed: () async {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HomePage()),
-                  );
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        );
+
+        if (kDebugMode) {
+          print(file.existsSync());
+        }
+
+        if (file.existsSync()) {
+          await readJsonData().then((jsonData) {
+            String id = jsonData['employeeid'];
+
+            if (id != objects[0]['employeeid']) {
+              deleteFile('data/user.json');
+
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('New Data Login'),
+                  content:
+                      const Text('Application will close to reload user data'),
+                  actions: [
+                    TextButton(
+                      onPressed: closeApp,
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            } else {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Login'),
+                  content: const Text('Success'),
+                  actions: [
+                    TextButton(
+                      onPressed: () async {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const HiddenDrawer()),
+                        );
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            }
+          });
+        } else {
+          createJsonFile(data);
+
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Login'),
+              content: const Text('Success'),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const HiddenDrawer()),
+                    );
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
       }
     } else {
       // Failed login

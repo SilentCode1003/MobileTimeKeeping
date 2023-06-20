@@ -1,6 +1,16 @@
+import 'dart:convert';
+import 'dart:ffi';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:http/http.dart' as http;
+import 'package:geolocator/geolocator.dart';
 
+
+
+import '../config.dart';
+import '../repository/customhelper.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -18,6 +28,10 @@ class _HomePageState extends State<HomePage> {
     'images/hero3.jpg',
     'images/hero4.jpg',
   ];
+  late String currentLocation = '';
+  late String employeeid = '';
+  late double _latitude;
+  late double _longitude;
 
   // Log in/out dialog on button click
   String buttonText = "Log In";
@@ -25,6 +39,51 @@ class _HomePageState extends State<HomePage> {
 
   List<Widget> notifications = [];
   bool showNotifications = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    getLocalUserData();
+    _getCurrentLocation().then((Position position) {
+      // Use the position data
+      double latitude = position.latitude;
+      double longitude = position.longitude;
+      // Do something with the latitude and longitude
+
+      setState(() {
+        _latitude = latitude;
+        _longitude = longitude;
+      });
+
+      _getgeolocationname(latitude, longitude);
+
+      if (kDebugMode) {
+        print('Latitude: $latitude, Longitude: $longitude');
+      }
+    }).catchError((e) {
+      // Handle error scenarios
+      if (kDebugMode) {
+        print(e);
+      }
+    });
+  }
+
+
+
+  Future<void> getLocalUserData() async {
+    await readJsonData().then((jsonData) {
+      String id = jsonData['employeeid'];
+
+      if (kDebugMode) {
+        print(jsonData);
+      }
+
+      setState(() {
+        employeeid = id;
+      });
+    });
+  }
 
   void addNotification(Widget notification) {
     setState(() {
@@ -68,6 +127,7 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 Navigator.of(context).pop();
                 setState(() {
+                  _timelog(context, 'OUT', _latitude, _longitude, employeeid);
                   isLoggedIn = false;
                   buttonText = 'Log In';
                   addNotification(
@@ -106,17 +166,91 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Future<void> _timelog(BuildContext context, String type, double latitude,
+      double longitude, String employeeid) async {
+    final url = Uri.parse(Config.apiUrl + Config.attendanceTimelogAPI);
+    final response = await http.post(url, body: {
+      'employeeid': employeeid,
+      'latitude': '$latitude',
+      'longitude': '$longitude',
+      'type': type
+    });
+
+    if (kDebugMode) {
+      print(response.statusCode);
+    }
+
+    if (response.statusCode == 200) {
+      // final responseData = json.decode(response.body);
+      // if (kDebugMode) {
+      //   print(responseData['msg']);
+      // }
+    }
+  }
+
+  Future<Position> _getCurrentLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Check if location services are enabled
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      // Location services are disabled
+      return Future.error('Location services are disabled.');
+    }
+
+    // Check if the app has permission to access location
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      // Location permissions are denied
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // Permission still denied
+        return Future.error('Location permissions are denied.');
+      }
+    }
+
+    // Get the current location
+    return await Geolocator.getCurrentPosition();
+  }
+
+  Future<String> _getgeolocationname(double latitude, double longitude) async {
+    final response = await http.get(Uri.parse(
+        'https://geocode.maps.co/reverse?lat=$latitude&lon=$longitude'));
+
+    if (response.statusCode == 200) {
+      final responseData = json.decode(response.body);
+
+      if (kDebugMode) {
+        print(responseData['display_name']);
+      }
+
+      setState(() {
+        currentLocation = responseData['display_name'];
+      });
+
+      return responseData['display_name'];
+    } else {
+      throw Exception('Failed to fetch data');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Mobile Time Keeping',style: TextStyle(color: Colors.black),),
-          
+          title: const Text(
+            'Mobile Time Keeping',
+            style: TextStyle(color: Colors.black),
+          ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.notifications,color: Color.fromARGB(255, 0, 153, 224),),
+              icon: const Icon(
+                Icons.notifications,
+                color: Color.fromARGB(255, 0, 153, 224),
+              ),
               onPressed: () {
                 setState(() {
                   showNotifications = true;
@@ -126,7 +260,6 @@ class _HomePageState extends State<HomePage> {
           ],
           backgroundColor: const Color.fromARGB(255, 150, 166, 255),
         ),
-
         body: Stack(
           children: [
             SingleChildScrollView(
@@ -146,7 +279,8 @@ class _HomePageState extends State<HomePage> {
                             padding: EdgeInsets.zero,
                             decoration: const BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.all(Radius.circular(8)),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(8)),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.white,
@@ -161,11 +295,11 @@ class _HomePageState extends State<HomePage> {
                                 children: [
                                   const SizedBox(height: 20),
                                   const Text('Sched 08:00 - 06:00'),
-                                  const Text(
-                                    'Current Location',
-                                    style: TextStyle(
+                                  Text(
+                                    currentLocation,
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 20,
+                                      fontSize: 12,
                                     ),
                                   ),
                                   const SizedBox(height: 10),
@@ -177,12 +311,15 @@ class _HomePageState extends State<HomePage> {
                                       gradient: LinearGradient(
                                         colors: isLoggedIn
                                             ? [
-                                                const Color.fromARGB(255, 194, 13, 0),
-                                                const Color.fromARGB(255, 255, 68, 0),
+                                                const Color.fromARGB(
+                                                    255, 194, 13, 0),
+                                                const Color.fromARGB(
+                                                    255, 255, 68, 0),
                                               ]
                                             : [
                                                 Colors.green,
-                                                const Color.fromARGB(255, 143, 251, 20),
+                                                const Color.fromARGB(
+                                                    255, 143, 251, 20),
                                               ],
                                         begin: Alignment.topLeft,
                                         end: Alignment.bottomRight,
@@ -202,46 +339,77 @@ class _HomePageState extends State<HomePage> {
                                         shape: const CircleBorder(),
                                         elevation: 0,
                                         padding: EdgeInsets.zero,
-                                        minimumSize: Size.zero,
-                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                        // minimumSize: Size,
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
                                         visualDensity: VisualDensity.compact,
                                       ),
                                       onPressed: () {
-                                        if (isLoggedIn) {
-                                          showLogoutDialog();
-                                        } else {
-                                          setState(() {
-                                            isLoggedIn = true;
-                                            buttonText = 'Log Out';
-                                            addNotification(
-                                              NotificationCard(
-                                                message: 'You are logged in!',
-                                                type: NotificationType.success,
-                                                onDismiss: () {
-                                                  removeNotification(
-                                                    NotificationCard(
-                                                      message: 'You are logged in!',
-                                                      type: NotificationType.success,
-                                                      onDismiss: () {},
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            );
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: const Text('You are logged in!'),
-                                                duration: const Duration(seconds: 2),
-                                                action: SnackBarAction(
-                                                  label: 'Dismiss',
-                                                  onPressed: () {
-                                                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                        _getCurrentLocation()
+                                            .then((Position position) {
+                                          // Use the position data
+                                          double latitude = position.latitude;
+                                          double longitude = position.longitude;
+                                          // Do something with the latitude and longitude
+                                          if (kDebugMode) {
+                                            print(
+                                                'Latitude: $latitude, Longitude: $longitude');
+                                          }
+
+                                          _getgeolocationname(
+                                              latitude, longitude);
+
+                                          if (isLoggedIn) {
+                                            showLogoutDialog();
+                                          } else {
+                                            _timelog(context, 'IN', _latitude,
+                                                _longitude, employeeid);
+                                            setState(() {
+                                              isLoggedIn = true;
+                                              buttonText = 'Log Out';
+                                              addNotification(
+                                                NotificationCard(
+                                                  message: 'You are logged in!',
+                                                  type:
+                                                      NotificationType.success,
+                                                  onDismiss: () {
+                                                    removeNotification(
+                                                      NotificationCard(
+                                                        message:
+                                                            'You are logged in!',
+                                                        type: NotificationType
+                                                            .success,
+                                                        onDismiss: () {},
+                                                      ),
+                                                    );
                                                   },
                                                 ),
-                                              ),
-                                            );
-                                          });
-                                        }
+                                              );
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                  content: const Text(
+                                                      'You are logged in!'),
+                                                  duration: const Duration(
+                                                      seconds: 2),
+                                                  action: SnackBarAction(
+                                                    label: 'Dismiss',
+                                                    onPressed: () {
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .hideCurrentSnackBar();
+                                                    },
+                                                  ),
+                                                ),
+                                              );
+                                            });
+                                          }
+                                        }).catchError((e) {
+                                          // Handle error scenarios
+                                          if (kDebugMode) {
+                                            print(e);
+                                          }
+                                        });
                                       },
                                       child: Text(
                                         buttonText,
@@ -322,7 +490,8 @@ class _HomePageState extends State<HomePage> {
                                   itemCount: notifications.length,
                                   itemBuilder: (context, index) {
                                     return Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 8.0),
                                       child: notifications[index],
                                     );
                                   },
@@ -341,7 +510,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
 }
 
 enum NotificationType { success, info }

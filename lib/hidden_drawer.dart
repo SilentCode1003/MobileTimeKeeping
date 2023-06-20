@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hidden_drawer_menu/hidden_drawer_menu.dart';
-import 'package:scratch/pages/homepage.dart';
-import 'package:scratch/pages/payslip.dart';
+import 'pages/homepage.dart';
+import 'pages/payslip.dart';
 import 'pages/settings.dart';
 import 'pages/logs.dart';
 
@@ -21,6 +21,8 @@ class _HiddeDrawerState extends State<HiddenDrawer> {
     color: Colors.white,
   );
 
+ 
+
   @override
   void initState() {
     super.initState();
@@ -36,7 +38,8 @@ class _HiddeDrawerState extends State<HiddenDrawer> {
           selectedStyle: menutextstyle,
           colorLineSelected: Colors.blue,
         ),
-        const HomePage(),
+        const HomePage(
+),
       ),
       ScreenHiddenDrawer(
         ItemHiddenMenu(

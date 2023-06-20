@@ -1,4 +1,4 @@
-package com.example.scratch
+package com.example.mobiletimekeeping
 
 import io.flutter.embedding.android.FlutterActivity
 

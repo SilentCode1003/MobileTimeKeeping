@@ -7,7 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:scratch/main.dart';
+import 'package:mobiletimekeeping/main.dart';
 
 
 void main() {

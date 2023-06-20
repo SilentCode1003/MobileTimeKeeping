@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:scratch/pages/loginscreen.dart';
+
+import 'pages/loginscreen.dart';
+
 
 void main() {
   runApp(const MyApp());

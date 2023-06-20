@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:scratch/pages/changepassword.dart';
-import 'package:scratch/pages/loginscreen.dart';
-import 'package:scratch/pages/testpage.dart';
 
+import 'changepassword.dart';
+import 'loginscreen.dart';
+import 'testpage.dart';
 
 class Settings extends StatefulWidget {
   const Settings({Key? key}) : super(key: key);
@@ -44,7 +44,7 @@ class _SettingsState extends State<Settings> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>   TestPage(),
+                          builder: (context) => TestPage(),
                         ),
                       );
                     },
@@ -70,8 +70,7 @@ class _SettingsState extends State<Settings> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                                TestPage(), //// TEST PAGE
+                          builder: (context) => const TestPage(), //// TEST PAGE
                         ),
                       );
                     },
@@ -88,7 +87,6 @@ class _SettingsState extends State<Settings> {
       ),
       body: ListView(
         children: <Widget>[
-      
           Card(
             child: ListTile(
               leading: const Icon(Icons.password_outlined),
@@ -106,7 +104,7 @@ class _SettingsState extends State<Settings> {
               title: Text('Devices', style: settingsstyle),
             ),
           ),
-           Card(
+          Card(
             child: ListTile(
               leading: const Icon(Icons.lock),
               title: Text('Privacy', style: settingsstyle),
@@ -116,7 +114,10 @@ class _SettingsState extends State<Settings> {
             child: ListTile(
               leading: const Icon(Icons.fingerprint),
               title: Text('Biometrics Authentication', style: settingsstyle),
-              subtitle: const Text('Disabled',style: TextStyle(color: Colors.green),),
+              subtitle: const Text(
+                'Disabled',
+                style: TextStyle(color: Colors.green),
+              ),
             ),
           ),
           Card(
