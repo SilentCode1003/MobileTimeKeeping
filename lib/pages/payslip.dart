@@ -21,7 +21,10 @@ class Item {
 }
 
 class Payslip extends StatefulWidget {
-  const Payslip({Key? key}) : super(key: key);
+  final String? employeeid;
+  final String? fullname;
+  const Payslip({Key? key, required this.employeeid, required this.fullname})
+      : super(key: key);
 
   @override
   State<Payslip> createState() => _PayslipState();

@@ -6,7 +6,11 @@ import 'pages/settings.dart';
 import 'pages/logs.dart';
 
 class HiddenDrawer extends StatefulWidget {
-  const HiddenDrawer({Key? key}) : super(key: key);
+  final String? employeeid;
+  final String? fullname;
+  const HiddenDrawer(
+      {Key? key, required this.employeeid, required this.fullname})
+      : super(key: key);
 
   @override
   State<HiddenDrawer> createState() => _HiddeDrawerState();
@@ -20,8 +24,6 @@ class _HiddeDrawerState extends State<HiddenDrawer> {
     fontSize: 17,
     color: Colors.white,
   );
-
- 
 
   @override
   void initState() {
@@ -38,8 +40,10 @@ class _HiddeDrawerState extends State<HiddenDrawer> {
           selectedStyle: menutextstyle,
           colorLineSelected: Colors.blue,
         ),
-        const HomePage(
-),
+        HomePage(
+          employeeid: widget.employeeid,
+          fullname: widget.fullname,
+        ),
       ),
       ScreenHiddenDrawer(
         ItemHiddenMenu(
@@ -65,7 +69,10 @@ class _HiddeDrawerState extends State<HiddenDrawer> {
           selectedStyle: menutextstyle,
           colorLineSelected: Colors.blue,
         ),
-        const Payslip(),
+        Payslip(
+          employeeid: widget.employeeid,
+          fullname: widget.fullname,
+        ),
       ),
       ScreenHiddenDrawer(
         ItemHiddenMenu(
@@ -78,7 +85,10 @@ class _HiddeDrawerState extends State<HiddenDrawer> {
           selectedStyle: menutextstyle,
           colorLineSelected: Colors.blue,
         ),
-        const Settings(),
+        Settings(
+          employeeid: widget.employeeid,
+          fullname: widget.fullname,
+        ),
       ),
     ];
   }

@@ -27,6 +27,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formField = GlobalKey<FormState>();
   final emailController = TextEditingController();
   final passController = TextEditingController();
+  late String employeeid = '';
+  late String fullname = '';
   bool passToggle = true;
   bool rememberMe = false;
 
@@ -34,6 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     enablePermissions();
+    // createDirectory();
     loadRememberMeStatus();
     checkConnectivity().then((isConnected) {
       if (isConnected) {
@@ -113,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return connectivityResult != ConnectivityResult.none;
   }
 
-  Future<void> login(BuildContext context) async {
+  Future<void> _login(BuildContext context) async {
     final username = emailController.text;
     final password = passController.text;
 
@@ -121,16 +124,29 @@ class _LoginScreenState extends State<LoginScreen> {
     final response = await http
         .post(url, body: {'username': username, 'password': password});
 
-    if (kDebugMode) {
-      print(response.statusCode);
-    }
-
     if (response.statusCode == 200) {
       final responseData = json.decode(response.body);
+      final List<dynamic> objects = responseData['data'];
+      final Map<String, dynamic> data = {
+        "employeeid": objects[0]['employeeid'],
+        "firstname": objects[0]['firstname'],
+        "middlename": objects[0]['middlename'],
+        "lastname": objects[0]['lastname'],
+        "username": objects[0]['username'],
+        "password": objects[0]['password'],
+        "position": objects[0]['position'],
+        "department": objects[0]['department'],
+        "contactnumber": objects[0]['contactnumber'],
+        "email": objects[0]['email'],
+        "status": objects[0]['status'],
+      };
 
-      if (kDebugMode) {
-        print(responseData['msg']);
-      }
+      createJsonFile(data);
+
+      final resID = objects[0]['employeeid'];
+      employeeid = objects[0]['employeeid'];
+      fullname =
+          '${objects[0]['lastname']},${objects[0]['firstname']} ${objects[0]['middlename']}';
 
       if (responseData['msg'] != 'success') {
         showDialog(
@@ -147,97 +163,50 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       } else {
-        final List<dynamic> objects = responseData['data'];
-        final Map<String, dynamic> data = {
-          "employeeid": objects[0]['employeeid'],
-          "firstname": objects[0]['firstname'],
-          "middlename": objects[0]['middlename'],
-          "lastname": objects[0]['lastname'],
-          "username": objects[0]['username'],
-          "password": objects[0]['password'],
-          "position": objects[0]['position'],
-          "department": objects[0]['department'],
-          "contactnumber": objects[0]['contactnumber'],
-          "email": objects[0]['email'],
-          "status": objects[0]['status'],
-        };
+        // await readJsonData().then((jsonData) {
+        //   String id = jsonData['employeeid'];
 
-        if (kDebugMode) {
-          print(data);
-        }
+        //   if (id != resID) {
+        //     deleteFile('data/user.json');
+        //     showDialog(
+        //       context: context,
+        //       builder: (ctx) => AlertDialog(
+        //         title: const Text('New Data Login'),
+        //         content:
+        //             const Text('Application will close to reload user data'),
+        //         actions: [
+        //           TextButton(
+        //             onPressed: closeApp,
+        //             child: const Text('OK'),
+        //           ),
+        //         ],
+        //       ),
+        //     );
+        //   } else {}
+        // });
 
-        final file = File('data/user.json');
-
-        if (kDebugMode) {
-          print(file.existsSync());
-        }
-
-        if (file.existsSync()) {
-          await readJsonData().then((jsonData) {
-            String id = jsonData['employeeid'];
-
-            if (id != objects[0]['employeeid']) {
-              deleteFile('data/user.json');
-
-              showDialog(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text('New Data Login'),
-                  content:
-                      const Text('Application will close to reload user data'),
-                  actions: [
-                    TextButton(
-                      onPressed: closeApp,
-                      child: const Text('OK'),
-                    ),
-                  ],
-                ),
-              );
-            } else {
-              showDialog(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text('Login'),
-                  content: const Text('Success'),
-                  actions: [
-                    TextButton(
-                      onPressed: () async {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const HiddenDrawer()),
-                        );
-                      },
-                      child: const Text('OK'),
-                    ),
-                  ],
-                ),
-              );
-            }
-          });
-        } else {
-          createJsonFile(data);
-
-          showDialog(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: const Text('Login'),
-              content: const Text('Success'),
-              actions: [
-                TextButton(
-                  onPressed: () async {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const HiddenDrawer()),
-                    );
-                  },
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-          );
-        }
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Login'),
+            content: const Text('Success'),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => HiddenDrawer(
+                              employeeid: employeeid,
+                              fullname: fullname,
+                            )),
+                  );
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
       }
     } else {
       // Failed login
@@ -272,16 +241,16 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                FloatingActionButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const HiddenDrawer()),
-                    );
-                  },
-                  child: const Icon(Icons.arrow_forward),
-                ),
+                // FloatingActionButton(
+                //   onPressed: () {
+                //     Navigator.push(
+                //       context,
+                //       MaterialPageRoute(
+                //           builder: (context) => const HiddenDrawer()),
+                //     );
+                //   },
+                //   child: const Icon(Icons.arrow_forward),
+                // ),
                 Image.asset(
                   'images/toge.png',
                   height: 270,
@@ -395,7 +364,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       //   ),
                       // );
 
-                      login(context);
+                      _login(context);
                       if (rememberMe) {
                         saveLoginCredentials(
                             emailController.text, passController.text);

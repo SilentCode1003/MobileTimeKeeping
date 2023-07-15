@@ -5,7 +5,10 @@ import 'loginscreen.dart';
 import 'testpage.dart';
 
 class Settings extends StatefulWidget {
-  const Settings({Key? key}) : super(key: key);
+  final String? employeeid;
+  final String? fullname;
+  const Settings({Key? key, required this.employeeid, required this.fullname})
+      : super(key: key);
   @override
   State<Settings> createState() => _SettingsState();
 }

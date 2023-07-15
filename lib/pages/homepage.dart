@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ffi';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -7,20 +6,22 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
 
-
-
 import '../config.dart';
 import '../repository/customhelper.dart';
+import '../repository/geolocator.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  final String? employeeid;
+  final String? fullname;
+  const HomePage({Key? key, required this.employeeid, required this.fullname})
+      : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  // Carousel - Slideshow
+// Carousel - Slideshow
   final List<String> slideshw = [
     'images/hero.jpg',
     'images/hero1.jpg',
@@ -30,10 +31,11 @@ class _HomePageState extends State<HomePage> {
   ];
   late String currentLocation = '';
   late String employeeid = '';
+  late String fullname = '';
   late double _latitude;
   late double _longitude;
 
-  // Log in/out dialog on button click
+// Log in/out dialog on button click
   String buttonText = "Log In";
   bool isLoggedIn = false;
 
@@ -43,9 +45,8 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-
-    getLocalUserData();
-    _getCurrentLocation().then((Position position) {
+    // getLocalUserData();
+    getCurrentLocation().then((Position position) {
       // Use the position data
       double latitude = position.latitude;
       double longitude = position.longitude;
@@ -56,7 +57,17 @@ class _HomePageState extends State<HomePage> {
         _longitude = longitude;
       });
 
-      _getgeolocationname(latitude, longitude);
+      getGeolocationName(latitude, longitude)
+          .then((locationname) => {
+                setState(() {
+                  currentLocation = locationname;
+                })
+              })
+          .catchError((onError) {
+        if (kDebugMode) {
+          print(onError);
+        }
+      });
 
       if (kDebugMode) {
         print('Latitude: $latitude, Longitude: $longitude');
@@ -69,17 +80,16 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-
-
   Future<void> getLocalUserData() async {
     await readJsonData().then((jsonData) {
       String id = jsonData['employeeid'];
 
       if (kDebugMode) {
-        print(jsonData);
+        print('Retrieved Data: $jsonData');
       }
 
       setState(() {
+        getLogStatus(id);
         employeeid = id;
       });
     });
@@ -170,7 +180,7 @@ class _HomePageState extends State<HomePage> {
       double longitude, String employeeid) async {
     final url = Uri.parse(Config.apiUrl + Config.attendanceTimelogAPI);
     final response = await http.post(url, body: {
-      'employeeid': employeeid,
+      'employeeid': widget.employeeid,
       'latitude': '$latitude',
       'longitude': '$longitude',
       'type': type
@@ -188,50 +198,27 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<Position> _getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    // Check if location services are enabled
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      // Location services are disabled
-      return Future.error('Location services are disabled.');
-    }
-
-    // Check if the app has permission to access location
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      // Location permissions are denied
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        // Permission still denied
-        return Future.error('Location permissions are denied.');
-      }
-    }
-
-    // Get the current location
-    return await Geolocator.getCurrentPosition();
-  }
-
-  Future<String> _getgeolocationname(double latitude, double longitude) async {
-    final response = await http.get(Uri.parse(
-        'https://geocode.maps.co/reverse?lat=$latitude&lon=$longitude'));
+  Future<void> getLogStatus(String employeeid) async {
+    final url = Uri.parse(Config.apiUrl + Config.attendanceGetLogStatusAPI);
+    final response = await http.post(url, body: {
+      'employeeid': employeeid,
+    });
 
     if (response.statusCode == 200) {
       final responseData = json.decode(response.body);
 
-      if (kDebugMode) {
-        print(responseData['display_name']);
+      if (responseData["msg"] != 'success') {
+        isLoggedIn = false;
+        if (kDebugMode) {
+          print("not yet login");
+        }
+      } else {
+        isLoggedIn = true;
+        buttonText = 'Log Out';
+        if (kDebugMode) {
+          print("already login");
+        }
       }
-
-      setState(() {
-        currentLocation = responseData['display_name'];
-      });
-
-      return responseData['display_name'];
-    } else {
-      throw Exception('Failed to fetch data');
     }
   }
 
@@ -294,7 +281,8 @@ class _HomePageState extends State<HomePage> {
                               child: Column(
                                 children: [
                                   const SizedBox(height: 20),
-                                  const Text('Sched 08:00 - 06:00'),
+                                  Text(
+                                      '${widget.fullname} Sched 08:00 - 06:00'),
                                   Text(
                                     currentLocation,
                                     style: const TextStyle(
@@ -345,71 +333,50 @@ class _HomePageState extends State<HomePage> {
                                         visualDensity: VisualDensity.compact,
                                       ),
                                       onPressed: () {
-                                        _getCurrentLocation()
-                                            .then((Position position) {
-                                          // Use the position data
-                                          double latitude = position.latitude;
-                                          double longitude = position.longitude;
-                                          // Do something with the latitude and longitude
-                                          if (kDebugMode) {
-                                            print(
-                                                'Latitude: $latitude, Longitude: $longitude');
-                                          }
-
-                                          _getgeolocationname(
-                                              latitude, longitude);
-
-                                          if (isLoggedIn) {
-                                            showLogoutDialog();
-                                          } else {
-                                            _timelog(context, 'IN', _latitude,
-                                                _longitude, employeeid);
-                                            setState(() {
-                                              isLoggedIn = true;
-                                              buttonText = 'Log Out';
-                                              addNotification(
-                                                NotificationCard(
-                                                  message: 'You are logged in!',
-                                                  type:
-                                                      NotificationType.success,
-                                                  onDismiss: () {
-                                                    removeNotification(
-                                                      NotificationCard(
-                                                        message:
-                                                            'You are logged in!',
-                                                        type: NotificationType
-                                                            .success,
-                                                        onDismiss: () {},
-                                                      ),
-                                                    );
+                                        if (isLoggedIn) {
+                                          showLogoutDialog();
+                                        } else {
+                                          _timelog(context, 'IN', _latitude,
+                                              _longitude, employeeid);
+                                          setState(() {
+                                            isLoggedIn = true;
+                                            buttonText = 'Log Out';
+                                            addNotification(
+                                              NotificationCard(
+                                                message: 'You are logged in!',
+                                                type: NotificationType.success,
+                                                onDismiss: () {
+                                                  removeNotification(
+                                                    NotificationCard(
+                                                      message:
+                                                          'You are logged in!',
+                                                      type: NotificationType
+                                                          .success,
+                                                      onDismiss: () {},
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            );
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                content: const Text(
+                                                    'You are logged in!'),
+                                                duration:
+                                                    const Duration(seconds: 2),
+                                                action: SnackBarAction(
+                                                  label: 'Dismiss',
+                                                  onPressed: () {
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .hideCurrentSnackBar();
                                                   },
                                                 ),
-                                              );
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                SnackBar(
-                                                  content: const Text(
-                                                      'You are logged in!'),
-                                                  duration: const Duration(
-                                                      seconds: 2),
-                                                  action: SnackBarAction(
-                                                    label: 'Dismiss',
-                                                    onPressed: () {
-                                                      ScaffoldMessenger.of(
-                                                              context)
-                                                          .hideCurrentSnackBar();
-                                                    },
-                                                  ),
-                                                ),
-                                              );
-                                            });
-                                          }
-                                        }).catchError((e) {
-                                          // Handle error scenarios
-                                          if (kDebugMode) {
-                                            print(e);
-                                          }
-                                        });
+                                              ),
+                                            );
+                                          });
+                                        }
                                       },
                                       child: Text(
                                         buttonText,

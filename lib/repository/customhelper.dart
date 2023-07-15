@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -24,26 +25,28 @@ List<String> getMonths() {
   return months;
 }
 
-void createJsonFile(data) async {
-  // final Map<dynamic> jsonData = {
-  //   'fullname': 'John Doe',
-  //   'role': 'johndoe@example.com',
-  //   'position': 30,
-  // };
-  if (kDebugMode) {
-    print(data);
-  }
-  final jsonString = json.encode(data);
-  final file = File('data/user.json');
-  file.writeAsString(jsonString);
+Future<void> createJsonFile(data) async {
+  final path = await getDirectory();
+  final String jsonString = json.encode(data);
+  final file = File('$path/user.json');
 
   if (kDebugMode) {
-    print('Done Saving $data');
+    print(path);
+  }
+  if (kDebugMode) {
+    print(jsonString);
+  }
+  await file.writeAsString(jsonString);
+
+  if (kDebugMode) {
+    print(jsonString);
   }
 }
 
 Future<Map<String, dynamic>> readJsonData() async {
-  var jsonString = await rootBundle.loadString('data/user.json');
+  final path = await getDirectory();
+
+  var jsonString = await rootBundle.loadString('$path/user.json');
   Map<String, dynamic> data = json.decode(jsonString);
 
   if (kDebugMode) {
@@ -66,4 +69,44 @@ void deleteFile(path) {
       print('Error deleting file: $error');
     }
   });
+}
+
+Future<void> createDirectory() async {
+  // Get the application documents directory
+  Directory appDocumentsDirectory = await getApplicationDocumentsDirectory();
+
+  // Create a new directory within the documents directory
+  String folderName = 'userdata';
+  Directory newDirectory =
+      Directory('${appDocumentsDirectory.path}/$folderName');
+
+  // Check if the directory already exists
+  if (await newDirectory.exists()) {
+    if (kDebugMode) {
+      print('Directory already exists');
+    }
+    return;
+  }
+
+  // Create the directory
+  await newDirectory.create();
+
+  if (kDebugMode) {
+    print('Directory created: ${newDirectory.path}');
+  }
+}
+
+Future<String> getDirectory() async {
+  // Get the application documents directory
+  Directory appDocumentsDirectory = await getApplicationDocumentsDirectory();
+
+  // Create a new directory within the documents directory
+  String folderName = 'userdata';
+  String newDirectory =
+      Directory('${appDocumentsDirectory.path}/$folderName').path;
+
+  if (kDebugMode) {
+    print(newDirectory);
+  }
+  return newDirectory;
 }
