@@ -198,11 +198,15 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> getLogStatus(String employeeid) async {
+  Future<void> getLogStatus(employeeid) async {
     final url = Uri.parse(Config.apiUrl + Config.attendanceGetLogStatusAPI);
     final response = await http.post(url, body: {
       'employeeid': employeeid,
     });
+
+    if (kDebugMode) {
+      print(employeeid);
+    }
 
     if (response.statusCode == 200) {
       final responseData = json.decode(response.body);
@@ -224,6 +228,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    getLogStatus(widget.employeeid);
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
