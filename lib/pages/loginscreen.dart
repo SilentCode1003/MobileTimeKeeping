@@ -143,7 +143,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
       createJsonFile(data);
 
-      final resID = objects[0]['employeeid'];
       employeeid = objects[0]['employeeid'];
       fullname =
           '${objects[0]['lastname']},${objects[0]['firstname']} ${objects[0]['middlename']}';

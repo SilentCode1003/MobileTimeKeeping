@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
+import 'package:mobiletimekeeping/pages/logs.dart';
 
 import '../config.dart';
 import '../repository/customhelper.dart';
@@ -176,8 +177,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> _timelog(BuildContext context, String type, double latitude,
-      double longitude, String employeeid) async {
+  Future<void> _timelog(
+      BuildContext context, type, latitude, longitude, employeeid) async {
     final url = Uri.parse(Config.apiUrl + Config.attendanceTimelogAPI);
     final response = await http.post(url, body: {
       'employeeid': widget.employeeid,
@@ -228,31 +229,13 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    getLogStatus(widget.employeeid);
+    final employeeid = widget.employeeid;
+    final fullname = widget.fullname;
+    getLogStatus(employeeid);
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'Mobile Time Keeping',
-            style: TextStyle(color: Colors.black),
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(
-                Icons.notifications,
-                color: Color.fromARGB(255, 0, 153, 224),
-              ),
-              onPressed: () {
-                setState(() {
-                  showNotifications = true;
-                });
-              },
-            ),
-          ],
-          backgroundColor: const Color.fromARGB(255, 150, 166, 255),
-        ),
         body: Stack(
           children: [
             SingleChildScrollView(
@@ -261,13 +244,13 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(15),
+                        padding: const EdgeInsets.all(5),
                         child: Container(
                           decoration: const BoxDecoration(
                             color: Colors.grey,
                             borderRadius: BorderRadius.all(Radius.circular(12)),
                           ),
-                          padding: const EdgeInsets.all(9),
+                          padding: const EdgeInsets.all(6),
                           child: Container(
                             padding: EdgeInsets.zero,
                             decoration: const BoxDecoration(
@@ -286,15 +269,20 @@ class _HomePageState extends State<HomePage> {
                             child: Center(
                               child: Column(
                                 children: [
-                                  const SizedBox(height: 20),
                                   Text(
-                                      '${widget.fullname} Sched 08:00 - 06:00'),
+                                    '$fullname',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  const Text('Sched 08:00 - 06:00'),
+                                  const SizedBox(height: 10),
                                   Text(
                                     currentLocation,
                                     style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12),
+                                    textAlign: TextAlign.center,
                                   ),
                                   const SizedBox(height: 10),
                                   Container(
@@ -416,13 +404,43 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                     ),
                                   ),
-                                  const Divider(height: 20),
+                                  const Divider(
+                                    height: 10,
+                                  ),
                                 ],
                               ),
                             ),
                           ),
                         ),
                       ),
+                      const Divider(height: 50),
+                      SizedBox(
+                          height: 50,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                  child: ElevatedButton(
+                                child: const Text('Payslip'),
+                                onPressed: () {},
+                              )),
+                              Expanded(
+                                  child: ElevatedButton(
+                                child: const Text('Attendance'),
+                                onPressed: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              Logs(employeeid: employeeid)));
+                                },
+                              )),
+                              Expanded(
+                                  child: ElevatedButton(
+                                child: const Text('My Requests'),
+                                onPressed: () {},
+                              )),
+                            ],
+                          ))
                     ],
                   ),
                 ),

@@ -56,7 +56,9 @@ class _HiddeDrawerState extends State<HiddenDrawer> {
           selectedStyle: menutextstyle,
           colorLineSelected: Colors.blue,
         ),
-        const Logs(),
+        Logs(
+          employeeid: widget.employeeid,
+        ),
       ),
       ScreenHiddenDrawer(
         ItemHiddenMenu(

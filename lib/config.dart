@@ -7,4 +7,5 @@ class Config {
   static const String employeeLoginAPI = 'login/employeelogin';
   static const String attendanceTimelogAPI = 'attendance/timelog';
   static const String attendanceGetLogStatusAPI = 'attendance/getlogstatus';
+  static const String attendanceGetTimeLogsAPI = 'attendance/gettimelogs';
 }
