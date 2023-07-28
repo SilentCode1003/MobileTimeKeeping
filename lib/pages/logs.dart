@@ -146,9 +146,10 @@ class _LogsState extends State<Logs> {
                 onTap: () => _showModalSheet(context, timelog),
                 child: ListTile(
                   leading: const Icon(Icons.article_outlined),
-                  title: Text(timelog.date, style: const TextStyle(
-                    fontWeight: FontWeight.w800
-                  ),),
+                  title: Text(
+                    timelog.date,
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
                   subtitle: timelog.type == 'IN'
                       ? Text(
                           '${timelog.type} - ${timelog.time}H',
