@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'pages/loginscreen.dart';
+import 'package:animated_splash_screen/animated_splash_screen.dart';
 
 
 void main() {
@@ -14,7 +15,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const LoginScreen(),
+      home: AnimatedSplashScreen(
+          splash: Image.asset('images/logo_coin.gif'),
+          splashIconSize: double.maxFinite,
+          centered: true,
+          backgroundColor: const Color.fromARGB(255, 248, 124, 124),
+          duration: 5000,
+          splashTransition: SplashTransition.fadeTransition,
+          nextScreen: const LoginScreen()),
       theme: ThemeData(
         primarySwatch: const MaterialColor(0xFF3177B1, <int, Color>{
           50: Color(0xFFD6E9F5),
