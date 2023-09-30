@@ -38,7 +38,7 @@ class _HiddeDrawerState extends State<HiddenDrawer> {
             fontWeight: FontWeight.w500,
           ),
           selectedStyle: menutextstyle,
-          colorLineSelected: Colors.blue,
+          colorLineSelected: const Color.fromARGB(255, 201, 62, 71),
         ),
         HomePage(
           employeeid: widget.employeeid,
@@ -54,7 +54,7 @@ class _HiddeDrawerState extends State<HiddenDrawer> {
             fontWeight: FontWeight.w500,
           ),
           selectedStyle: menutextstyle,
-          colorLineSelected: Colors.blue,
+          colorLineSelected: const Color.fromARGB(255, 201, 62, 71),
         ),
         Logs(
           employeeid: widget.employeeid,
@@ -69,7 +69,7 @@ class _HiddeDrawerState extends State<HiddenDrawer> {
             fontWeight: FontWeight.w500,
           ),
           selectedStyle: menutextstyle,
-          colorLineSelected: Colors.blue,
+          colorLineSelected: const Color.fromARGB(255, 201, 62, 71),
         ),
         Payslip(
           employeeid: widget.employeeid,
@@ -85,7 +85,7 @@ class _HiddeDrawerState extends State<HiddenDrawer> {
             fontWeight: FontWeight.w500,
           ),
           selectedStyle: menutextstyle,
-          colorLineSelected: Colors.blue,
+          colorLineSelected: const Color.fromARGB(255, 201, 62, 71),
         ),
         Settings(
           employeeid: widget.employeeid,
@@ -98,7 +98,7 @@ class _HiddeDrawerState extends State<HiddenDrawer> {
   @override
   Widget build(BuildContext context) {
     return HiddenDrawerMenu(
-      backgroundColorMenu: const Color.fromARGB(255, 36, 48, 114),
+      backgroundColorMenu: const Color.fromARGB(255, 106, 40, 40),
       screens: _pages,
       isTitleCentered: true,
       slidePercent: 35,

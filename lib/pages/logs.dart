@@ -65,13 +65,13 @@ class _LogsState extends State<Logs> {
               ),
               const SizedBox(height: 10),
               ListTile(
-                title: Text('LOC'),
+                title: const Text('LOC'),
                 trailing:
                     Text('LON: ${timelog.longitude} LAT: ${timelog.latitude}'),
               ),
               const SizedBox(height: 10),
               ListTile(
-                title: Text('LOG'),
+                title: const Text('LOG'),
                 trailing:
                     Text('Type: ${timelog.type} - Time: ${timelog.time}H'),
               ),
@@ -132,7 +132,7 @@ class _LogsState extends State<Logs> {
         ),
         automaticallyImplyLeading: false,
         toolbarHeight: 38,
-        backgroundColor: const Color.fromARGB(255, 150, 166, 255),
+        backgroundColor: const Color.fromARGB(255, 69,123,157),
       ),
       body: Container(
         padding: const EdgeInsets.only(top: 20.0),
@@ -148,15 +148,15 @@ class _LogsState extends State<Logs> {
                   leading: const Icon(Icons.article_outlined),
                   title: Text(
                     timelog.date,
-                    style: const TextStyle(fontWeight: FontWeight.w800),
+                    style: const TextStyle(fontWeight: FontWeight.w500),
                   ),
                   subtitle: timelog.type == 'IN'
                       ? Text(
-                          '${timelog.type} - ${timelog.time}H',
-                          style: const TextStyle(color: Colors.blueAccent),
+                          '${timelog.type} - ${timelog.time} - H',
+                          style: const TextStyle(color: Colors.green),
                         )
                       : Text(
-                          '${timelog.type} - ${timelog.time}H',
+                          '${timelog.type} - ${timelog.time} - H',
                           style: const TextStyle(color: Colors.red),
                         ),
                 ),
