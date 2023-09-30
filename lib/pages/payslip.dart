@@ -216,7 +216,7 @@ class _PayslipState extends State<Payslip> {
         ),
         automaticallyImplyLeading: false,
         toolbarHeight: 75,
-        backgroundColor: const Color.fromARGB(255, 150, 166, 255),
+        backgroundColor: const Color.fromARGB(255, 69,123,157),
       ),
       body: Container(
         padding: const EdgeInsets.only(top: 20.0),

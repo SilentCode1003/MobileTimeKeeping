@@ -30,7 +30,7 @@ class _SettingsState extends State<Settings> {
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 65, // Adjust the height as needed
-        backgroundColor: const Color.fromARGB(255, 49, 119, 177),
+        backgroundColor: const Color.fromARGB(255, 69, 123, 157),
         automaticallyImplyLeading: false, // Remove the back button
         title: SizedBox(
           width: 500,
@@ -47,7 +47,7 @@ class _SettingsState extends State<Settings> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => TestPage(),
+                          builder: (context) => const TestPage(),
                         ),
                       );
                     },
@@ -89,6 +89,7 @@ class _SettingsState extends State<Settings> {
         ),
       ),
       body: ListView(
+        
         children: <Widget>[
           Card(
             child: ListTile(
@@ -176,9 +177,9 @@ class _SettingsState extends State<Settings> {
             builder: (BuildContext context) {
               return AlertDialog(
                 title: Text(title),
-                content: Column(
+                content: const Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
+                  children: [
                     Text('option 1'),
                     Text('option 2'),
                   ],
