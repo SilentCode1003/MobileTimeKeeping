@@ -30,9 +30,26 @@ class _LoginScreenState extends State<LoginScreen> {
   bool passToggle = true;
   bool rememberMe = false;
 
+  FocusNode _emailFocusNode = FocusNode();
+  FocusNode _passwordFocusNode = FocusNode();
+
   @override
   void initState() {
     super.initState();
+
+    // Add listener to email controller to automatically move focus to password field
+    emailController.addListener(() {
+      if (emailController.text.length == 1) {
+        FocusScope.of(context).requestFocus(_passwordFocusNode);
+      }
+    });
+
+    // Add listener to password controller to handle submission or any other actions
+    passController.addListener(() {
+      if (passController.text.isNotEmpty) {
+        // You can add code here to handle form submission or any other actions
+      }
+    });
     enablePermissions();
     // createDirectory();
     loadRememberMeStatus();
@@ -211,6 +228,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextFormField(
                     keyboardType: TextInputType.emailAddress,
                     controller: emailController,
+                    focusNode: _emailFocusNode, // Assign the email focus node
+
                     decoration: const InputDecoration(
                       hintStyle: TextStyle(color: Colors.teal),
                       labelText: 'Email',
@@ -234,6 +253,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextFormField(
                     keyboardType: TextInputType.emailAddress,
                     controller: passController,
+                    focusNode:
+                        _passwordFocusNode, // Assign the password focus node
+
                     obscureText: passToggle,
                     decoration: InputDecoration(
                       labelText: 'Password',
