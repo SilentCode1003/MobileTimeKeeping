@@ -1,11 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
 import 'package:mobiletimekeeping/pages/logs.dart';
+import 'package:carousel_slider/carousel_slider.dart';
+// import 'package:mobiletimekeeping/pages/clockpage.dart';
 
 import '../config.dart';
 import '../repository/customhelper.dart';
@@ -227,6 +229,12 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Stream<String> currentTimeStream =
+      Stream.periodic(const Duration(seconds: 1), (int _) {
+    final now = DateTime.now();
+    return "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
+  });
+
   @override
   Widget build(BuildContext context) {
     final employeeid = widget.employeeid;
@@ -267,15 +275,57 @@ class _HomePageState extends State<HomePage> {
                             ),
                             width: double.infinity,
                             child: Center(
+                              /////////////////////////////////////////////////
                               child: Column(
                                 children: [
-                                  Text(
-                                    '$fullname',
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold),
+                                  StreamBuilder<String>(
+                                    stream: currentTimeStream,
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasData) {
+                                        final now = DateTime.now();
+                                        final formattedTime =
+                                            DateFormat('h:mm:ss a').format(now);
+                                        return Column(
+                                          children: [
+                                            Text(
+                                              formattedTime,
+                                              style: const TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 18,
+                                              ),
+                                            ),
+                                            Text(
+                                              '$fullname',
+                                              style: const TextStyle(
+                                                color: Colors.grey,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 18,
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      } else {
+                                        return const Text(
+                                          'Loading...',
+                                          style: TextStyle(
+                                            color: Colors.grey,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                          ),
+                                        );
+                                      }
+                                    },
                                   ),
-                                  const SizedBox(height: 10),
-                                  const Text('Sched 08:00 - 06:00'),
+                                  /////////////////////////////////////////////
+                                  const Text(
+                                    'Sched 08:00 - 06:00',
+                                    style: TextStyle(
+                                        color: Colors.grey,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 10),
+                                    textAlign: TextAlign.center,
+                                  ),
                                   const SizedBox(height: 10),
                                   Text(
                                     currentLocation,
@@ -294,12 +344,13 @@ class _HomePageState extends State<HomePage> {
                                         colors: isLoggedIn
                                             ? [
                                                 const Color.fromARGB(
-                                                    255, 194, 13, 0),
+                                                    255, 157, 69, 69),
                                                 const Color.fromARGB(
                                                     255, 255, 68, 0),
                                               ]
                                             : [
-                                                Colors.green,
+                                                const Color.fromARGB(
+                                                    255, 70, 157, 69),
                                                 const Color.fromARGB(
                                                     255, 143, 251, 20),
                                               ],
@@ -307,9 +358,17 @@ class _HomePageState extends State<HomePage> {
                                         end: Alignment.bottomRight,
                                       ),
                                       boxShadow: [
+                                        // BoxShadow(
+                                        //     offset: Offset(10, 10),
+                                        //     color: Color.fromARGB(150,255,255,255),
+                                        //     blurRadius: 10),
+                                        // BoxShadow(
+                                        //     offset: Offset(-5, -5),
+                                        //     color: Color.fromARGB(80,0,0,0),
+                                        //     blurRadius: 10),
                                         BoxShadow(
                                           color: Colors.black.withOpacity(0.3),
-                                          offset: const Offset(0, 3),
+                                          offset: const Offset(0, 5),
                                           blurRadius: 6,
                                         ),
                                       ],
@@ -382,6 +441,115 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                     ),
                                   ),
+                                  ////////
+                                  Container(
+                                    width: 120,
+                                    height: 120,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        colors: isLoggedIn
+                                            ? [
+                                                const Color.fromARGB(
+                                                    255, 157, 69, 69),
+                                                const Color.fromARGB(
+                                                    255, 255, 68, 0),
+                                              ]
+                                            : [
+                                                const Color.fromARGB(
+                                                    255, 70, 157, 69),
+                                                const Color.fromARGB(
+                                                    255, 143, 251, 20),
+                                              ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                      boxShadow: [
+                                        // BoxShadow(
+                                        //     offset: Offset(10, 10),
+                                        //     color: Color.fromARGB(150,255,255,255),
+                                        //     blurRadius: 10),
+                                        // BoxShadow(
+                                        //     offset: Offset(-5, -5),
+                                        //     color: Color.fromARGB(80,0,0,0),
+                                        //     blurRadius: 10),
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.3),
+                                          offset: const Offset(0, 5),
+                                          blurRadius: 6,
+                                        ),
+                                      ],
+                                    ),
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.transparent,
+                                        foregroundColor: Colors.white,
+                                        shape: const CircleBorder(),
+                                        elevation: 0,
+                                        padding: EdgeInsets.zero,
+                                        // minimumSize: Size,
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
+                                        visualDensity: VisualDensity.compact,
+                                      ),
+                                      onPressed: () {
+                                        if (isLoggedIn) {
+                                          showLogoutDialog();
+                                        } else {
+                                          _timelog(context, 'IN', _latitude,
+                                              _longitude, employeeid);
+                                          setState(() {
+                                            isLoggedIn = true;
+                                            buttonText = 'Log Out';
+                                            addNotification(
+                                              NotificationCard(
+                                                message: 'You are logged in!',
+                                                type: NotificationType.success,
+                                                onDismiss: () {
+                                                  removeNotification(
+                                                    NotificationCard(
+                                                      message:
+                                                          'You are logged in!',
+                                                      type: NotificationType
+                                                          .success,
+                                                      onDismiss: () {},
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            );
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                content: const Text(
+                                                    'You are logged in!'),
+                                                duration:
+                                                    const Duration(seconds: 2),
+                                                action: SnackBarAction(
+                                                  label: 'Dismiss',
+                                                  onPressed: () {
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .hideCurrentSnackBar();
+                                                  },
+                                                ),
+                                              ),
+                                            );
+                                          });
+                                        }
+                                      },
+                                      child: const Text(
+                                        'DUPLICATE',
+                                        textAlign: TextAlign.center,
+                                        style:  TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 25,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  /////////// 
+
                                   const Divider(height: 50),
                                   Padding(
                                     padding: const EdgeInsets.all(10.0),
@@ -404,43 +572,91 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                     ),
                                   ),
-                                  const Divider(
-                                    height: 10,
-                                  ),
+                                  // const Divider(
+                                  //   height: 10,
+                                  // ),
                                 ],
                               ),
                             ),
                           ),
                         ),
                       ),
-                      const Divider(height: 50),
-                      SizedBox(
-                          height: 50,
-                          child: Row(
-                            children: [
-                              Expanded(
-                                  child: ElevatedButton(
-                                child: const Text('Payslip'),
-                                onPressed: () {},
-                              )),
-                              Expanded(
-                                  child: ElevatedButton(
-                                child: const Text('Attendance'),
-                                onPressed: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              Logs(employeeid: employeeid)));
-                                },
-                              )),
-                              Expanded(
-                                  child: ElevatedButton(
-                                child: const Text('My Requests'),
-                                onPressed: () {},
-                              )),
-                            ],
-                          ))
+                      const Divider(height: 10),
+                      GridView.count(
+                        crossAxisCount: 3,
+                        mainAxisSpacing: 10.0,
+                        crossAxisSpacing: 10.0,
+                        padding: const EdgeInsets.only(
+                            top: 10, left: 20, right: 20, bottom: 10),
+                        shrinkWrap: true,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {},
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color.fromARGB(255, 12, 70, 106),
+                              shadowColor: Colors.black,
+                              elevation: 10,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20.0),
+                              ),
+                            ),
+                            child: const Text(
+                              'Payslip',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      Logs(employeeid: employeeid),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color.fromARGB(255, 12, 70, 106),
+                              shadowColor: Colors.black,
+                              elevation: 10,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20.0),
+                              ),
+                            ),
+                            child: const Text(
+                              'Attendance',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {},
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color.fromARGB(255, 12, 70, 106),
+                              shadowColor: Colors.black,
+                              elevation: 10,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20.0),
+                              ),
+                            ),
+                            child: const Text(
+                              'My Requests',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
                     ],
                   ),
                 ),
@@ -475,7 +691,7 @@ class _HomePageState extends State<HomePage> {
                               ],
                             ),
                             Expanded(
-                              child: Container(
+                              child: SizedBox(
                                 width: 300,
                                 child: ListView.builder(
                                   itemCount: notifications.length,
@@ -565,3 +781,39 @@ class NotificationCard extends StatelessWidget {
     );
   }
 }
+
+// class _ClocktimeState extends State<Clocktime> {
+//   String getTime() {
+//     final now = DateTime.now();
+//     return "${now.hour.toString().padLeft(2, '0')} : ${now.minute.toString().padLeft(2, '0')} : ${now.second.toString().padLeft(2, '0')}";
+//   }
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+//       if (mounted) {
+//         setState(() {});
+//       }
+//     });
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       debugShowCheckedModeBanner: false,
+//       home: Scaffold(
+//         backgroundColor: Colors.white,
+//         body: Center(
+//           child: Text(
+//             getTime(),
+//             style: const TextStyle(
+//               fontSize: 24,
+//               fontWeight: FontWeight.bold,
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
