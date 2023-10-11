@@ -8,8 +8,12 @@ import 'pages/logs.dart';
 class HiddenDrawer extends StatefulWidget {
   final String? employeeid;
   final String? fullname;
+  final String? department;
   const HiddenDrawer(
-      {Key? key, required this.employeeid, required this.fullname})
+      {Key? key,
+      required this.employeeid,
+      required this.fullname,
+      required this.department})
       : super(key: key);
 
   @override
@@ -43,6 +47,7 @@ class _HiddeDrawerState extends State<HiddenDrawer> {
         HomePage(
           employeeid: widget.employeeid,
           fullname: widget.fullname,
+          department: widget.department
         ),
       ),
       ScreenHiddenDrawer(

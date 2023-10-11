@@ -1,10 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ffi';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:geodesy/geodesy.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
+import 'package:mobiletimekeeping/api/geofence.dart';
+import 'package:mobiletimekeeping/component/geofencing.dart';
 import 'package:mobiletimekeeping/pages/logs.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 // import 'package:mobiletimekeeping/pages/clockpage.dart';
@@ -16,11 +21,22 @@ import '../repository/geolocator.dart';
 class HomePage extends StatefulWidget {
   final String? employeeid;
   final String? fullname;
-  const HomePage({Key? key, required this.employeeid, required this.fullname})
+  final String? department;
+  const HomePage(
+      {Key? key,
+      required this.employeeid,
+      required this.fullname,
+      required this.department})
       : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
+}
+
+class ZoomLevel {
+  double level;
+
+  ZoomLevel(this.level);
 }
 
 class _HomePageState extends State<HomePage> {
@@ -37,6 +53,15 @@ class _HomePageState extends State<HomePage> {
   late String fullname = '';
   late double _latitude;
   late double _longitude;
+  double _latitudeFence = 0;
+  double _longitudeFence = 0;
+  double _radius = 0;
+  String _locationname = '';
+
+  LatLng manuallySelectedLocation = LatLng(14.3390743, 121.0610688);
+  MapController mapController = MapController();
+  ZoomLevel zoomLevel = ZoomLevel(17.5);
+  bool isStatusButtonEnabled = false;
 
 // Log in/out dialog on button click
   String buttonText = "Log In";
@@ -49,6 +74,58 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     // getLocalUserData();
+    getCurrentLocation().then((Position position) {
+      // Use the position data
+      double latitude = position.latitude;
+      double longitude = position.longitude;
+      // Do something with the latitude and longitude
+
+      setState(() {
+        _latitude = latitude;
+        _longitude = longitude;
+      });
+
+      getGeolocationName(latitude, longitude)
+          .then((locationname) => {
+                setState(() {
+                  currentLocation = locationname;
+                })
+              })
+          .catchError((onError) {
+        if (kDebugMode) {
+          print(onError);
+        }
+      });
+
+      if (kDebugMode) {
+        print('Latitude: $latitude, Longitude: $longitude');
+      }
+    }).catchError((e) {
+      // Handle error scenarios
+      if (kDebugMode) {
+        print(e);
+      }
+    });
+
+    _getGeofence();
+  }
+
+  Future<void> _getGeofence() async {
+    print(widget.department);
+    final results = await GeofenceAPI().getgeofence(widget.department);
+    final jsonData = json.encode(results['data']);
+    setState(() {
+      for (var data in json.decode(jsonData)) {
+        int rad = data['radius'];
+        _radius = rad.toDouble();
+        _longitudeFence = data['longitude'];
+        _latitudeFence = data['latitude'];
+        _locationname = data['locationname'];
+      }
+    });
+  }
+
+  Future<void> _getCurrentLocation() async {
     getCurrentLocation().then((Position position) {
       // Use the position data
       double latitude = position.latitude;
@@ -235,6 +312,158 @@ class _HomePageState extends State<HomePage> {
     return "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
   });
 
+  void _selectLocation(LatLng location) {
+    setState(() {
+      manuallySelectedLocation = location;
+      // _updateLocationText(location);
+    });
+  }
+
+  void _centerMapToDefaultLocation() {
+    LatLng activelocation = LatLng(_latitude, _longitude);
+    LatLng targetLocation = activelocation;
+    mapController.move(targetLocation, zoomLevel.level);
+    setState(() {
+      manuallySelectedLocation = targetLocation;
+    });
+  }
+
+  Future<void> _verifyLocation() async {
+    await _getCurrentLocation();
+    await _getGeofence();
+
+    LatLng activelocation = LatLng(_latitude, _longitude);
+    LatLng circledomain = LatLng(_latitudeFence, _longitudeFence);
+    final distanceToDomain =
+        const Distance().as(LengthUnit.Meter, circledomain, activelocation);
+
+    print(circledomain);
+
+    if (distanceToDomain <= _radius) {
+      // Enable the "Status" button
+      setState(() {
+        print('true');
+        isStatusButtonEnabled = true;
+      });
+    } else {
+      // Disable the "Status" button
+      setState(() {
+        print('false');
+        isStatusButtonEnabled = false;
+      });
+    }
+
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Verify Location'),
+            content: SizedBox(
+              width: double.maxFinite,
+              height: 400,
+              child: FlutterMap(
+                mapController: mapController,
+                options: MapOptions(
+                  center: activelocation,
+                  zoom: zoomLevel.level,
+                  onTap: (point, activelocation) {
+                    // _selectLocation(latLng);
+
+                    // Check if the selected location is inside circledomain, circledomaintwo, or thirdcircle
+                  },
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate:
+                        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    subdomains: const ['a', 'b', 'c'],
+                  ),
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        width: 80.0,
+                        height: 80.0,
+                        point: activelocation,
+                        builder: (ctx) => const Icon(
+                          Icons.location_pin,
+                          color: Colors.red,
+                          size: 40.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                  CircleLayer(
+                    circles: [
+                      CircleMarker(
+                        point: circledomain,
+                        color: Colors.green.withOpacity(0.5), // Fill color
+                        borderColor: Colors.blue, // Border color
+                        borderStrokeWidth: 2, // Border width
+                        useRadiusInMeter: true,
+                        radius: _radius, // Radius in meters
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              ElevatedButton(
+                  onPressed: isStatusButtonEnabled
+                      ? () {
+                          if (isLoggedIn) {
+                            showLogoutDialog();
+                          } else {
+                            _timelog(context, 'IN', _latitude, _longitude,
+                                employeeid);
+                            setState(() {
+                              isLoggedIn = true;
+                              buttonText = 'Log Out';
+                              addNotification(
+                                NotificationCard(
+                                  message: 'You are logged in!',
+                                  type: NotificationType.success,
+                                  onDismiss: () {
+                                    removeNotification(
+                                      NotificationCard(
+                                        message: 'You are logged in!',
+                                        type: NotificationType.success,
+                                        onDismiss: () {},
+                                      ),
+                                    );
+                                  },
+                                ),
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text('You are logged in!'),
+                                  duration: const Duration(seconds: 2),
+                                  action: SnackBarAction(
+                                    label: 'Dismiss',
+                                    onPressed: () {
+                                      ScaffoldMessenger.of(context)
+                                          .hideCurrentSnackBar();
+                                    },
+                                  ),
+                                ),
+                              );
+                            });
+
+                            Navigator.of(context).pop();
+                          }
+                        }
+                      : null,
+                  child: const Text('Confirm')),
+              ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Close'))
+            ],
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     final employeeid = widget.employeeid;
@@ -387,48 +616,63 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                       onPressed: () {
                                         if (isLoggedIn) {
-                                          showLogoutDialog();
+                                          // Navigator.push(
+                                          //   context,
+                                          //   MaterialPageRoute(
+                                          //       builder: (context) =>
+                                          //           const Geofencing()),
+                                          // );
+
+                                          _verifyLocation();
+                                          // showLogoutDialog();
                                         } else {
-                                          _timelog(context, 'IN', _latitude,
-                                              _longitude, employeeid);
-                                          setState(() {
-                                            isLoggedIn = true;
-                                            buttonText = 'Log Out';
-                                            addNotification(
-                                              NotificationCard(
-                                                message: 'You are logged in!',
-                                                type: NotificationType.success,
-                                                onDismiss: () {
-                                                  removeNotification(
-                                                    NotificationCard(
-                                                      message:
-                                                          'You are logged in!',
-                                                      type: NotificationType
-                                                          .success,
-                                                      onDismiss: () {},
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            );
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              SnackBar(
-                                                content: const Text(
-                                                    'You are logged in!'),
-                                                duration:
-                                                    const Duration(seconds: 2),
-                                                action: SnackBarAction(
-                                                  label: 'Dismiss',
-                                                  onPressed: () {
-                                                    ScaffoldMessenger.of(
-                                                            context)
-                                                        .hideCurrentSnackBar();
-                                                  },
-                                                ),
-                                              ),
-                                            );
-                                          });
+                                          _verifyLocation();
+                                          // Navigator.push(
+                                          //   context,
+                                          //   MaterialPageRoute(
+                                          //       builder: (context) =>
+                                          //           const Geofencing()),
+                                          // );
+                                          // _timelog(context, 'IN', _latitude,
+                                          //     _longitude, employeeid);
+                                          // setState(() {
+                                          //   isLoggedIn = true;
+                                          //   buttonText = 'Log Out';
+                                          //   addNotification(
+                                          //     NotificationCard(
+                                          //       message: 'You are logged in!',
+                                          //       type: NotificationType.success,
+                                          //       onDismiss: () {
+                                          //         removeNotification(
+                                          //           NotificationCard(
+                                          //             message:
+                                          //                 'You are logged in!',
+                                          //             type: NotificationType
+                                          //                 .success,
+                                          //             onDismiss: () {},
+                                          //           ),
+                                          //         );
+                                          //       },
+                                          //     ),
+                                          //   );
+                                          //   ScaffoldMessenger.of(context)
+                                          //       .showSnackBar(
+                                          //     SnackBar(
+                                          //       content: const Text(
+                                          //           'You are logged in!'),
+                                          //       duration:
+                                          //           const Duration(seconds: 2),
+                                          //       action: SnackBarAction(
+                                          //         label: 'Dismiss',
+                                          //         onPressed: () {
+                                          //           ScaffoldMessenger.of(
+                                          //                   context)
+                                          //               .hideCurrentSnackBar();
+                                          //         },
+                                          //       ),
+                                          //     ),
+                                          //   );
+                                          // });
                                         }
                                       },
                                       child: Text(
@@ -441,114 +685,6 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                     ),
                                   ),
-                                  ////////
-                                  Container(
-                                    width: 120,
-                                    height: 120,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      gradient: LinearGradient(
-                                        colors: isLoggedIn
-                                            ? [
-                                                const Color.fromARGB(
-                                                    255, 157, 69, 69),
-                                                const Color.fromARGB(
-                                                    255, 255, 68, 0),
-                                              ]
-                                            : [
-                                                const Color.fromARGB(
-                                                    255, 70, 157, 69),
-                                                const Color.fromARGB(
-                                                    255, 143, 251, 20),
-                                              ],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ),
-                                      boxShadow: [
-                                        // BoxShadow(
-                                        //     offset: Offset(10, 10),
-                                        //     color: Color.fromARGB(150,255,255,255),
-                                        //     blurRadius: 10),
-                                        // BoxShadow(
-                                        //     offset: Offset(-5, -5),
-                                        //     color: Color.fromARGB(80,0,0,0),
-                                        //     blurRadius: 10),
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.3),
-                                          offset: const Offset(0, 5),
-                                          blurRadius: 6,
-                                        ),
-                                      ],
-                                    ),
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.transparent,
-                                        foregroundColor: Colors.white,
-                                        shape: const CircleBorder(),
-                                        elevation: 0,
-                                        padding: EdgeInsets.zero,
-                                        // minimumSize: Size,
-                                        tapTargetSize:
-                                            MaterialTapTargetSize.shrinkWrap,
-                                        visualDensity: VisualDensity.compact,
-                                      ),
-                                      onPressed: () {
-                                        if (isLoggedIn) {
-                                          showLogoutDialog();
-                                        } else {
-                                          _timelog(context, 'IN', _latitude,
-                                              _longitude, employeeid);
-                                          setState(() {
-                                            isLoggedIn = true;
-                                            buttonText = 'Log Out';
-                                            addNotification(
-                                              NotificationCard(
-                                                message: 'You are logged in!',
-                                                type: NotificationType.success,
-                                                onDismiss: () {
-                                                  removeNotification(
-                                                    NotificationCard(
-                                                      message:
-                                                          'You are logged in!',
-                                                      type: NotificationType
-                                                          .success,
-                                                      onDismiss: () {},
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            );
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              SnackBar(
-                                                content: const Text(
-                                                    'You are logged in!'),
-                                                duration:
-                                                    const Duration(seconds: 2),
-                                                action: SnackBarAction(
-                                                  label: 'Dismiss',
-                                                  onPressed: () {
-                                                    ScaffoldMessenger.of(
-                                                            context)
-                                                        .hideCurrentSnackBar();
-                                                  },
-                                                ),
-                                              ),
-                                            );
-                                          });
-                                        }
-                                      },
-                                      child: const Text(
-                                        'DUPLICATE',
-                                        textAlign: TextAlign.center,
-                                        style:  TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 25,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  /////////// 
 
                                   const Divider(height: 50),
                                   Padding(

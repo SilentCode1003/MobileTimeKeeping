@@ -27,6 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final passController = TextEditingController();
   late String employeeid;
   late String fullname = '';
+  String department = '';
   bool passToggle = true;
   bool rememberMe = false;
 
@@ -38,11 +39,11 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
 
     // Add listener to email controller to automatically move focus to password field
-    emailController.addListener(() {
-      if (emailController.text.length == 1) {
-        FocusScope.of(context).requestFocus(_passwordFocusNode);
-      }
-    });
+    // emailController.addListener(() {
+    //   if (emailController.text.length == 1) {
+    //     FocusScope.of(context).requestFocus(_passwordFocusNode);
+    //   }
+    // });
 
     // Add listener to password controller to handle submission or any other actions
     passController.addListener(() {
@@ -157,6 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
         final List<Employee> employee = result['data'];
 
         setState(() {
+          department = employee[0].department;
           employeeid = employee[0].employeeid;
           fullname =
               '${employee[0].lastname},${employee[0].firstname} ${employee[0].middlename}';
@@ -166,9 +168,9 @@ class _LoginScreenState extends State<LoginScreen> {
           context,
           MaterialPageRoute(
               builder: (context) => HiddenDrawer(
-                    employeeid: employeeid,
-                    fullname: fullname,
-                  )),
+                  employeeid: employeeid,
+                  fullname: fullname,
+                  department: department)),
         );
       }
     } else {
